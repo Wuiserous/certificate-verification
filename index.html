@@ -1,166 +1,424 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Certificate Verification</title>
-<style>
-  body {
-    background: #f2f5f9;
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 100vh;
-    margin: 0;
-    padding: 1rem;
-  }
-  .container {
-    background: white;
-    padding: 2.5rem;
-    border-radius: 12px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    width: 90%;
-    max-width: 450px;
-    text-align: center;
-    transition: all 0.3s ease;
-  }
-  h2 {
-    margin-bottom: 1.5rem;
-    color: #333;
-    font-size: 1.8rem;
-  }
-  .progress-bar {
-    width: 100%;
-    background: #e0e0e0;
-    border-radius: 10px;
-    overflow: hidden;
-    height: 14px;
-    margin: 1rem 0;
-  }
-  .progress-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #007bff, #00c6ff);
-    width: 0%;
-    transition: width 0.3s ease;
-  }
-  .badge {
-    display: inline-block;
-    background: #28a745;
-    color: white;
-    padding: 0.4rem 1rem;
-    border-radius: 20px;
-    font-size: 1rem;
-    margin-top: 1rem;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.4s ease;
-  }
-  .badge.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .details-container {
-    margin-top: 1.5rem;
-    text-align: left;
-    border-top: 1px solid #eee;
-    padding-top: 1rem;
-    opacity: 0;
-    transform: translateY(20px);
-    transition: all 0.4s ease;
-  }
-  .details-container.show {
-    opacity: 1;
-    transform: translateY(0);
-  }
-  .details-container p {
-    margin: 0.5rem 0;
-    color: #555;
-  }
-  .details-container p strong {
-    color: #333;
-  }
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Certificate Verification</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&family=Roboto+Slab:wght@400;700&display=swap" rel="stylesheet">
+  <meta name="color-scheme" content="light only">
+  <style>
+    :root{
+      --bg:#f7f9fb;
+      --card:#ffffff;
+      --muted:#6b7280;
+      --accent-1:linear-gradient(90deg,#0ea5e9 0%, #2563eb 100%);
+      --accent-2:#10b981;
+      --danger:#ef4444;
+      --glass: rgba(255,255,255,0.6);
+      --shadow: 0 10px 30px rgba(16,24,40,0.06);
+      --radius:14px;
+      --radius-sm:10px;
+      --max-width:920px;
+      --transition: 240ms cubic-bezier(.2,.9,.3,1);
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial;
+      background: radial-gradient(1200px 400px at 10% 10%, rgba(37,99,235,0.03), transparent),
+                  radial-gradient(800px 300px at 90% 90%, rgba(16,185,129,0.02), transparent),
+                  var(--bg);
+      color:#0f172a;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:32px;
+    }
+
+    .wrap{
+      width:100%;
+      max-width:var(--max-width);
+      display:grid;
+      grid-template-columns: 1fr 420px;
+      gap:28px;
+      align-items:start;
+    }
+
+    /* Left card (main interaction) */
+    .panel{
+      background:linear-gradient(180deg, rgba(255,255,255,0.9), rgba(255,255,255,0.98));
+      border-radius:var(--radius);
+      padding:28px;
+      box-shadow:var(--shadow);
+      border:1px solid rgba(15,23,42,0.02);
+    }
+
+    header.app-brand{
+      display:flex;
+      align-items:center;
+      gap:14px;
+      margin-bottom:12px;
+    }
+    .logo{
+      width:56px;height:56px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(180deg,#eef2ff,#eefcff);
+      box-shadow: 0 6px 18px rgba(37,99,235,0.06);
+      flex-shrink:0;
+    }
+    .logo svg{width:28px;height:28px}
+    .brand-title{font-weight:700;font-size:1.05rem}
+    .brand-sub{color:var(--muted);font-size:0.86rem;margin-top:2px}
+
+    .headline{font-family:'Roboto Slab', serif;font-size:1.6rem;margin:14px 0 6px}
+    .subhead{color:var(--muted);margin-bottom:18px}
+
+    .input-row{display:flex;gap:12px;align-items:center}
+    .id-input{
+      flex:1;padding:14px 16px;border-radius:12px;border:1px solid rgba(15,23,42,0.06);
+      background:linear-gradient(180deg, rgba(250,250,250,1), rgba(255,255,255,0.8));
+      outline:none;font-size:0.98rem;transition:box-shadow var(--transition), transform var(--transition);
+    }
+    .id-input:focus{box-shadow:0 6px 18px rgba(37,99,235,0.08);transform:translateY(-2px);border-color:rgba(37,99,235,0.22)}
+
+    .btn{
+      display:inline-flex;align-items:center;gap:10px;padding:12px 14px;border-radius:12px;border:none;cursor:pointer;
+      font-weight:600;background:var(--accent-1);color:white;box-shadow: 0 6px 20px rgba(37,99,235,0.12);transition:transform var(--transition), box-shadow var(--transition);
+    }
+    .btn:active{transform:translateY(1px)}
+
+    .secondary{
+      background:transparent;border:1px solid rgba(15,23,42,0.06);color:var(--muted);font-weight:600;padding:10px 12px;border-radius:10px;cursor:pointer
+    }
+
+    /* status */
+    .status-area{margin-top:18px;display:flex;gap:14px;align-items:center}
+
+    .progress-wrap{flex:1}
+    .progress-outer{height:12px;background:rgba(2,6,23,0.04);border-radius:999px;overflow:hidden}
+    .progress-inner{height:100%;width:0%;background:linear-gradient(90deg,#06b6d4,#3b82f6);transition:width 600ms cubic-bezier(.2,.9,.3,1)}
+
+    .status-pill{padding:8px 12px;border-radius:999px;background:rgba(16,185,129,0.08);color:var(--accent-2);font-weight:600;border:1px solid rgba(16,185,129,0.12)}
+    .status-pill.fail{background:rgba(239,68,68,0.07);color:var(--danger);border-color:rgba(239,68,68,0.12)}
+
+    /* details */
+    .meta{margin-top:18px;border-radius:12px;padding:14px;background:linear-gradient(180deg, rgba(243,246,255,0.6), rgba(255,255,255,0.6));border:1px solid rgba(15,23,42,0.02)}
+    .meta-row{display:flex;justify-content:space-between;gap:10px;align-items:center}
+    .meta-left{color:var(--muted)}
+    .meta-right{font-weight:700}
+
+    .actions{display:flex;gap:10px;margin-top:12px}
+
+    /* right side card */
+    .side{
+      background:linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,252,255,0.98));border-radius:var(--radius);padding:18px;box-shadow:var(--shadow);border:1px solid rgba(15,23,42,0.02);
+    }
+    .trust{display:flex;flex-direction:column;gap:12px}
+    .trust .row{display:flex;gap:12px;align-items:center}
+    .trust svg{width:36px;height:36px}
+    .qr-preview{width:100%;height:220px;border-radius:10px;background:linear-gradient(180deg,#f8fafc,#ffffff);display:flex;align-items:center;justify-content:center;border:1px dashed rgba(15,23,42,0.04)}
+
+    .footnote{font-size:0.86rem;color:var(--muted);margin-top:10px}
+
+    /* animations */
+    .check-anim{
+      width:84px;height:84px;border-radius:999px;background:linear-gradient(90deg,#10b981,#059669);display:inline-grid;place-items:center;color:white;font-weight:700;box-shadow:0 8px 30px rgba(16,185,129,0.12);transform:scale(0.85);opacity:0;transition:transform 320ms cubic-bezier(.2,.9,.3,1),opacity 220ms
+    }
+    .check-anim.show{opacity:1;transform:scale(1)}
+
+    /* small screens */
+    @media (max-width:920px){
+      .wrap{grid-template-columns:1fr;}
+      .side{order:2}
+    }
+
+    /* subtle accessible focus */
+    :focus{outline:3px solid rgba(37,99,235,0.08);outline-offset:3px}
+
+    /* Microcopy */
+    .muted-block{color:var(--muted);font-size:0.92rem}
+
+  </style>
 </head>
 <body>
-<div class="container">
-  <h2>Certificate Verification</h2>
-  <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
-  <div class="badge" id="badge">✅ Verified</div>
-  <div class="details-container" id="detailsContainer"></div>
-</div>
+  <main class="wrap" aria-labelledby="page-title">
 
-<script>
-function getIdentifierFromQuery() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("id");
-}
+    <section class="panel" role="region" aria-label="Certificate verification">
+      <header class="app-brand">
+        <div class="logo" aria-hidden="true">
+          <!-- Simple mark -->
+          <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <rect x="3" y="3" width="18" height="18" rx="5" fill="#eef2ff"/>
+            <path d="M7 12l3 3 7-9" stroke="#2563eb" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+        <div>
+          <div class="brand-title">CertiCheck</div>
+          <div class="brand-sub">Instant verification • Trusted • Tamper-resistant</div>
+        </div>
+      </header>
 
-function animateProgressRandomly(fillElem) {
-  let progress = 0;
-  const interval = setInterval(() => {
-    if (progress < 80) {
-      progress += Math.random() * 5;
-      fillElem.style.width = progress + "%";
+      <h1 id="page-title" class="headline">Verify a Certificate</h1>
+      <p class="subhead">Enter the certificate ID or open a verification link. We check the record against our secured ledger and return an official verification.</p>
+
+      <div class="input-row" role="search" aria-label="Search certificate by id">
+        <input id="certIdInput" class="id-input" type="text" inputmode="text" placeholder="Paste certificate ID or scan link (e.g. DOM07-AB12C3D-2025)" aria-label="Certificate ID" />
+        <button id="verifyBtn" class="btn" aria-label="Verify certificate">Verify</button>
+      </div>
+
+      <div class="status-area" aria-live="polite">
+        <div class="progress-wrap">
+          <div class="progress-outer" aria-hidden="true">
+            <div id="progressBar" class="progress-inner" style="width:0%"></div>
+          </div>
+        </div>
+        <div id="statusPill" class="status-pill" aria-hidden="true">Idle</div>
+      </div>
+
+      <div id="metaPanel" class="meta" hidden>
+        <div class="meta-row">
+          <div>
+            <div class="meta-left">Student</div>
+            <div id="studentName" class="meta-right">—</div>
+          </div>
+          <div>
+            <div class="meta-left">Domain</div>
+            <div id="domainName" class="meta-right">—</div>
+          </div>
+        </div>
+        <div style="height:10px"></div>
+        <div class="meta-row">
+          <div>
+            <div class="meta-left">Issued On</div>
+            <div id="issueOn" class="meta-right">—</div>
+          </div>
+          <div style="text-align:right">
+            <div class="meta-left">Verification ID</div>
+            <div id="displayId" class="meta-right">—</div>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="copyBtn" class="secondary" title="Copy verification link">Copy Link</button>
+          <button id="openCertBtn" class="secondary" title="Open certificate page">Open Certificate</button>
+          <button id="printBtn" class="secondary" title="Print certificate">Print</button>
+        </div>
+      </div>
+
+      <div id="message" class="muted-block" style="margin-top:12px">Tip: you can also open this page with a query like <code>?id=DOM07-AB12C3D-2025</code></div>
+
+    </section>
+
+    <aside class="side" aria-label="Verification details and trust">
+      <div class="trust">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div style="font-weight:700">Verification Preview</div>
+          <div style="font-size:0.86rem;color:var(--muted)">Secure • Read-only</div>
+        </div>
+
+        <div id="previewArea" class="qr-preview" aria-live="polite">
+          <div id="qrFallback" style="text-align:center;padding:14px;color:var(--muted)">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" aria-hidden="true"><rect x="2" y="2" width="20" height="20" rx="4" stroke="#e6eefc"/></svg>
+            <div style="margin-top:8px">No certificate selected</div>
+          </div>
+        </div>
+
+        <div style="display:flex;gap:8px;align-items:center;margin-top:6px">
+          <div id="badgeVerified" class="check-anim" role="status" aria-hidden="true">✓</div>
+          <div>
+            <div style="font-weight:700" id="trustTitle">Not verified</div>
+            <div class="footnote" id="trustSub">Results from official source</div>
+          </div>
+        </div>
+
+        <div style="height:8px"></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <div style="display:flex;gap:8px;align-items:center">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 2L2 7v6c0 5 8 9 10 9s10-4 10-9V7L12 2z" stroke="#0f172a" stroke-opacity="0.12" stroke-width="1.2"/></svg>
+            <div style="font-size:0.9rem;color:var(--muted)">Tamper-proof log</div>
+          </div>
+          <div style="display:flex;gap:8px;align-items:center">
+            <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="12" r="9" stroke="#0f172a" stroke-opacity="0.12" stroke-width="1.2"/></svg>
+            <div style="font-size:0.9rem;color:var(--muted)">Institution verified</div>
+          </div>
+        </div>
+
+        <p class="footnote">If you believe these results are incorrect, contact <a href="mailto:support@example.com">support@example.com</a> with the verification ID.</p>
+      </div>
+    </aside>
+
+  </main>
+
+  <script>
+    // --- Configuration ---
+    const ENDPOINT = "https://script.google.com/macros/s/AKfycbxqa4m-IpuY43y18oCM2MAyygwO0n9t3pqpjpH58NmuOdA-ylbRAfqmYDRIVnXwqh1o/exec"; // keep your endpoint
+
+    // DOM
+    const input = document.getElementById('certIdInput');
+    const btn = document.getElementById('verifyBtn');
+    const progress = document.getElementById('progressBar');
+    const statusPill = document.getElementById('statusPill');
+    const metaPanel = document.getElementById('metaPanel');
+    const studentName = document.getElementById('studentName');
+    const domainName = document.getElementById('domainName');
+    const issueOn = document.getElementById('issueOn');
+    const displayId = document.getElementById('displayId');
+    const previewArea = document.getElementById('previewArea');
+    const qrFallback = document.getElementById('qrFallback');
+    const badge = document.getElementById('badgeVerified');
+    const trustTitle = document.getElementById('trustTitle');
+    const trustSub = document.getElementById('trustSub');
+
+    // buttons
+    const copyBtn = document.getElementById('copyBtn');
+    const openCertBtn = document.getElementById('openCertBtn');
+    const printBtn = document.getElementById('printBtn');
+
+    // helpers
+    function setStatus(text, variant='idle'){
+      statusPill.textContent = text;
+      statusPill.classList.toggle('fail', variant === 'fail');
+      statusPill.style.background = variant === 'verified' ? 'rgba(16,185,129,0.08)' : (variant === 'fail' ? 'rgba(239,68,68,0.06)' : 'rgba(0,0,0,0.02)');
+      statusPill.style.color = variant === 'verified' ? 'var(--accent-2)' : (variant === 'fail' ? 'var(--danger)' : 'var(--muted)');
     }
-  }, 300);
-  return interval;
-}
 
-async function verifyCertificate(certId) {
-  const fillElem = document.getElementById("progressFill");
-  const badge = document.getElementById("badge");
-  const detailsContainer = document.getElementById("detailsContainer");
-
-  const interval = animateProgressRandomly(fillElem);
-
-  try {
-    const formData = new FormData();
-    formData.append("certId", certId);
-
-    const response = await fetch("https://script.google.com/macros/s/AKfycbxqa4m-IpuY43y18oCM2MAyygwO0n9t3pqpjpH58NmuOdA-ylbRAfqmYDRIVnXwqh1o/exec", {
-      method: "POST",
-      body: new URLSearchParams(formData)
-    });
-
-    const result = await response.json();
-
-    clearInterval(interval);
-    fillElem.style.width = "100%";
-
-    if (result.status === "verified") {
-      setTimeout(() => {
-        badge.classList.add("show");
-        const data = result.data;
-        detailsContainer.innerHTML = `
-          <p><strong>Student Name:</strong> ${data.studentName}</p>
-          <p><strong>Domain:</strong> ${data.domain}</p>
-          <p><strong>Certificate Issued On:</strong> ${data.issueDate}</p>
-        `;
-        detailsContainer.classList.add("show");
-      }, 400);
-    } else {
-      badge.textContent = "❌ Not Verified";
-      badge.style.background = "#dc3545";
-      badge.classList.add("show");
+    function setProgress(percent){
+      progress.style.width = Math.max(0, Math.min(100, percent)) + '%';
     }
 
-  } catch (error) {
-    clearInterval(interval);
-    fillElem.style.width = "100%";
-    badge.textContent = "⚠️ Error";
-    badge.style.background = "#fd7e14";
-    badge.classList.add("show");
-    console.error("Error:", error);
-  }
-}
+    // animate progress while waiting
+    let waitInterval = null;
+    function startWaiting(){
+      setProgress(6);
+      let p = 6;
+      clearInterval(waitInterval);
+      waitInterval = setInterval(()=>{
+        p += (Math.random()*6);
+        if(p>=78){ clearInterval(waitInterval); return; }
+        setProgress(p);
+      }, 360);
+    }
+    function stopWaiting(){ clearInterval(waitInterval); }
 
-document.addEventListener("DOMContentLoaded", () => {
-  const certIdFromURL = getIdentifierFromQuery();
-  if (certIdFromURL) {
-    verifyCertificate(certIdFromURL);
-  }
-});
-</script>
+    // read ID from query string
+    function readQueryId(){
+      const u = new URL(location.href);
+      return u.searchParams.get('id');
+    }
+
+    // create simple QR image using public service (fallback)
+    function setQrPreview(id){
+      // create url encode
+      const url = encodeURIComponent(location.origin + location.pathname + '?id=' + id);
+      const imgUrl = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${url}`;
+      previewArea.innerHTML = `<img alt="QR code for verification" src="${imgUrl}" width="180" height="180" style="border-radius:6px;box-shadow:0 8px 20px rgba(2,6,23,0.06)" />`;
+    }
+
+    // clear preview
+    function clearPreview(){ previewArea.innerHTML = ''; previewArea.appendChild(qrFallback); }
+
+    // copy helper
+    async function copyText(text){
+      try{ await navigator.clipboard.writeText(text); return true; }catch(e){ return false; }
+    }
+
+    // populate UI with result
+    function showVerified(data){
+      metaPanel.hidden = false;
+      studentName.textContent = data.studentName || '—';
+      domainName.textContent = data.domain || '—';
+      issueOn.textContent = data.issueDate || '—';
+      displayId.textContent = data.certId || '—';
+      setStatus('Verified', 'verified');
+      setProgress(100);
+      badge.classList.add('show');
+      trustTitle.textContent = 'Verified';
+      trustSub.textContent = 'Record found in official registry';
+      setQrPreview(data.certId || data.id || '');
+
+      // actions setup
+      const link = location.origin + location.pathname + '?id=' + encodeURIComponent(data.certId || data.id);
+      copyBtn.onclick = async()=>{
+        const ok = await copyText(link);
+        copyBtn.textContent = ok ? 'Copied!' : 'Copy Link';
+        setTimeout(()=>copyBtn.textContent = 'Copy Link', 1800);
+      };
+      openCertBtn.onclick = ()=>{ window.open(link, '_blank'); };
+      printBtn.onclick = ()=>{ window.print(); };
+    }
+
+    function showNotFound(id){
+      stopWaiting();
+      setProgress(100);
+      setStatus('Not found', 'fail');
+      metaPanel.hidden = true;
+      clearPreview();
+      trustTitle.textContent = 'Not verified';
+      trustSub.textContent = `No record matched for "${id}".`;
+      badge.classList.remove('show');
+    }
+
+    function showError(err){
+      stopWaiting();
+      setProgress(100);
+      setStatus('Error', 'fail');
+      metaPanel.hidden = true;
+      clearPreview();
+      trustTitle.textContent = 'Error';
+      trustSub.textContent = 'There was a problem reaching the verification service.';
+      console.error(err);
+    }
+
+    // main verify flow
+    async function verify(id){
+      if(!id) return;
+      // normalize
+      id = id.trim();
+      input.value = id;
+      setStatus('Checking...');
+      startWaiting();
+
+      try{
+        // send as application/x-www-form-urlencoded to the endpoint (same as your original)
+        const form = new URLSearchParams();
+        form.append('certId', id);
+
+        const res = await fetch(ENDPOINT, { method:'POST', body: form });
+        if(!res.ok) throw new Error('Network response not OK: ' + res.status);
+        const json = await res.json();
+        stopWaiting();
+
+        if(json && json.status === 'verified' && json.data){
+          showVerified({ ...json.data, certId: id });
+        } else if(json && json.status === 'not_found'){
+          showNotFound(id);
+        } else {
+          // some endpoints return boolean or different shapes — handle gracefully
+          if(json && json.status === 'verified') showVerified({ ...json });
+          else showNotFound(id);
+        }
+      }catch(e){
+        showError(e);
+      }
+    }
+
+    // events
+    btn.addEventListener('click', ()=>verify(input.value));
+    input.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') verify(input.value); });
+
+    // on load: read query param
+    (function init(){
+      const qid = readQueryId();
+      if(qid){
+        // small delay so user sees the page render
+        setTimeout(()=> verify(qid), 200);
+      }
+    })();
+
+    // keyboard accessibility: focus first input
+    input.focus();
+  </script>
 </body>
 </html>
