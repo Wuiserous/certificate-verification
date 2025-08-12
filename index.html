@@ -91,9 +91,9 @@
 </div>
 
 <script>
-function getIdentifierFromURL() {
-  const pathParts = window.location.pathname.split("/").filter(Boolean);
-  return pathParts.length > 0 ? pathParts[pathParts.length - 1] : null;
+function getIdentifierFromQuery() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get("id");
 }
 
 function animateProgressRandomly(fillElem) {
@@ -112,7 +112,6 @@ async function verifyCertificate(certId) {
   const badge = document.getElementById("badge");
   const detailsContainer = document.getElementById("detailsContainer");
 
-  // Start random progress
   const interval = animateProgressRandomly(fillElem);
 
   try {
@@ -127,7 +126,7 @@ async function verifyCertificate(certId) {
     const result = await response.json();
 
     clearInterval(interval);
-    fillElem.style.width = "100%"; // instantly fill
+    fillElem.style.width = "100%";
 
     if (result.status === "verified") {
       setTimeout(() => {
@@ -157,7 +156,7 @@ async function verifyCertificate(certId) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const certIdFromURL = getIdentifierFromURL();
+  const certIdFromURL = getIdentifierFromQuery();
   if (certIdFromURL) {
     verifyCertificate(certIdFromURL);
   }
