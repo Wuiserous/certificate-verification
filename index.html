@@ -107,7 +107,7 @@
       cursor: pointer;
       transition: background-color var(--transition);
     }
-    .btn:hover {
+    .btn:hover, .btn:focus {
       background-color: #0b5ed7;
     }
     #resultPanel {
@@ -144,6 +144,7 @@
     .status-badge svg {
       width: 24px;
       height: 24px;
+      flex-shrink: 0;
     }
     .details-grid {
       display: grid;
@@ -164,6 +165,34 @@
         color: var(--muted);
         text-align: center;
     }
+
+    /* --- MOBILE RESPONSIVE STYLES --- */
+    @media (max-width: 600px) {
+      body {
+        padding: 16px;
+        align-items: flex-start; /* Align to top on mobile */
+      }
+      .container {
+        padding: 24px;
+      }
+      .headline {
+        font-size: 1.5rem;
+      }
+      .subhead {
+        font-size: 0.95rem;
+      }
+      .input-field, .btn {
+        font-size: 0.95rem;
+      }
+      .details-grid {
+        grid-template-columns: 1fr; /* Stack into a single column */
+        gap: 12px;
+      }
+      .details-value {
+        margin-top: -8px; /* Reduce space between label and value */
+      }
+    }
+
   </style>
 </head>
 <body>
