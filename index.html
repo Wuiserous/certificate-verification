@@ -119,41 +119,10 @@
         text-align: center;
     }
     #animationContainer {
-        height: 80px;
-        margin-bottom: 1rem;
-        display: grid;
-        place-items: center;
+        height: 150px; /* Match video height */
+        width: 150px; /* Match video width */
+        margin: 0 auto 1.5rem auto;
     }
-    .analyzer-anim {
-        width: 60px;
-        height: 60px;
-    }
-    .analyzer-anim .bar {
-        fill: var(--primary);
-        animation: wave 1.2s ease-in-out infinite alternate;
-        transform-origin: 50% 100%;
-        transition: all 400ms cubic-bezier(0.5, 0, 0, 1);
-    }
-    .analyzer-anim .bar2 { animation-delay: 0.2s; }
-    .analyzer-anim .bar3 { animation-delay: 0.4s; }
-
-    @keyframes wave {
-        from { transform: scaleY(0.3); }
-        to { transform: scaleY(1); }
-    }
-
-    /* Success State (Morph to Checkmark) */
-    .analyzer-anim[data-status="success"] .bar { animation: none; fill: var(--success); }
-    .analyzer-anim[data-status="success"] .bar1 { transform: translateX(8px) translateY(18px) rotate(45deg) scale(0.8, 0.2); }
-    .analyzer-anim[data-status="success"] .bar2 { transform: translateX(-10px) translateY(12px) rotate(-45deg) scale(1.3, 0.2); }
-    .analyzer-anim[data-status="success"] .bar3 { opacity: 0; transform: scale(0); }
-
-    /* Fail State (Morph to X) */
-    .analyzer-anim[data-status="fail"] .bar { animation: none; fill: var(--danger); }
-    .analyzer-anim[data-status="fail"] .bar1 { transform: translateX(-2px) translateY(15px) rotate(45deg) scale(1.5, 0.2); }
-    .analyzer-anim[data-status="fail"] .bar2 { opacity: 0; transform: scale(0); }
-    .analyzer-anim[data-status="fail"] .bar3 { transform: translateX(2px) translateY(15px) rotate(-45deg) scale(1.5, 0.2); }
-
     #loadingStatus {
         font-weight: 500;
         margin-bottom: 1.5rem;
@@ -223,11 +192,10 @@
   <div id="loadingOverlay">
     <div class="loading-card">
       <div id="animationContainer">
-        <svg id="analyzerAnim" class="analyzer-anim" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-            <rect class="bar bar1" x="4" y="0" width="4" height="32" rx="2"/>
-            <rect class="bar bar2" x="14" y="0" width="4" height="32" rx="2"/>
-            <rect class="bar bar3" x="24" y="0" width="4" height="32" rx="2"/>
-        </svg>
+        <!-- VIDEO ANIMATION -->
+        <video width="150" height="150" autoplay loop muted playsinline src="loading.webm">
+          Your browser does not support the video tag.
+        </video>
       </div>
       <h2 id="loadingHeadline" class="headline" style="font-size: 1.5rem;">Verifying Certificate</h2>
       <p id="loadingStatus" class="subhead" style="margin-bottom: 1.5rem;">Initializing...</p>
@@ -250,7 +218,6 @@
     const loadingStatus = document.getElementById('loadingStatus');
     const progressBarInner = document.getElementById('progressBarInner');
     const loadingHeadline = document.getElementById('loadingHeadline');
-    const analyzerAnim = document.getElementById('analyzerAnim');
 
     function updateProgress(percent, message) {
         progressBarInner.style.width = `${percent}%`;
@@ -298,7 +265,6 @@
       if (!id) {
         loadingHeadline.textContent = "Error";
         updateProgress(100, "Invalid Link");
-        analyzerAnim.dataset.status = 'fail';
         setTimeout(() => {
           hideLoadingAndShowResults();
           showNotFound("INVALID LINK", "The verification link is missing a certificate ID.");
@@ -322,12 +288,6 @@
 
         setTimeout(() => {
           updateProgress(100, 'Done!');
-          if (json && json.status === 'verified' && json.data) {
-            analyzerAnim.dataset.status = 'success';
-          } else {
-            analyzerAnim.dataset.status = 'fail';
-          }
-
           setTimeout(() => {
             hideLoadingAndShowResults();
             if (json && json.status === 'verified' && json.data) {
@@ -335,13 +295,12 @@
             } else {
               showNotFound("NOT FOUND", "No valid record was found for this ID.");
             }
-          }, 600); // Wait for checkmark/cross animation
+          }, 400);
         }, 800);
 
       } catch (error) {
         console.error("Verification failed:", error);
         updateProgress(100, 'Error!');
-        analyzerAnim.dataset.status = 'fail';
         setTimeout(() => {
             hideLoadingAndShowResults();
             showNotFound("REQUEST FAILED", "Could not connect to the verification service.");
