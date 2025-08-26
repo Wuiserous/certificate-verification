@@ -198,9 +198,7 @@
     <div class="loading-card">
       <div id="animationContainer">
         <!-- VIDEO ANIMATION -->
-        <video width="150" height="150" autoplay loop muted playsinline src="loading.webm">
-          Your browser does not support the video tag.
-        </video>
+        <div style="width:50px;height:50px;border:5px solid #ccc;border-top:5px solid #06b6d4;border-radius:50%;animation:spin 1s linear infinite;@keyframes spin{to{transform:rotate(360deg);}}"></div>
       </div>
       <h2 id="loadingHeadline" class="headline" style="font-size: 1.5rem;">Verifying Certificate</h2>
       <p id="loadingStatus" class="subhead" style="margin-bottom: 1.5rem;">Initializing...</p>
