@@ -119,22 +119,51 @@
         text-align: center;
     }
     #animationContainer {
-        margin: 0 auto 1.5rem auto;
+        height: 80px;
+        margin-bottom: 1rem;
+        position: relative;
     }
-    .grad-cap-anim {
-        width: 64px;
-        height: 64px;
+    .scanner-anim {
+        width: 80px; height: 80px;
         margin: 0 auto;
-        animation: roll 8s linear infinite, breathe 2.5s ease-in-out infinite alternate;
+        color: var(--primary);
     }
-    @keyframes roll {
-        from { transform: rotate(0deg) translateX(5px) rotate(0deg); }
-        to { transform: rotate(360deg) translateX(5px) rotate(-360deg); }
+    .scanner-anim .shield-bg {
+        fill: #e7f1ff;
+        transition: fill 200ms;
     }
-    @keyframes breathe {
-        from { transform: scale(0.95); }
-        to { transform: scale(1.05); }
+    .scanner-anim[data-status="success"] .shield-bg { fill: rgba(25, 135, 84, 0.1); }
+    .scanner-anim[data-status="fail"] .shield-bg { fill: rgba(220, 53, 69, 0.1); }
+
+    .scanner-anim .scanner-line {
+        stroke: var(--primary);
+        animation: scan 2s ease-in-out infinite alternate;
     }
+    @keyframes scan {
+        from { transform: translateY(20%); } to { transform: translateY(80%); }
+    }
+    .scanner-anim .success-checkmark,
+    .scanner-anim .fail-cross { display: none; }
+
+    .scanner-anim[data-status="success"] .success-checkmark {
+        display: block;
+        stroke: var(--success);
+        stroke-dasharray: 20;
+        stroke-dashoffset: 20;
+        animation: draw 400ms ease-out forwards;
+    }
+    .scanner-anim[data-status="fail"] .fail-cross {
+        display: block;
+        stroke: var(--danger);
+        opacity: 0;
+        transform: scale(0.8);
+        animation: pop-in 300ms ease-out forwards;
+    }
+    .scanner-anim[data-status] .scanner-line { display: none; }
+
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes pop-in { to { opacity: 1; transform: scale(1); } }
+
     #loadingStatus {
         font-weight: 500;
         margin-bottom: 1.5rem;
@@ -153,7 +182,6 @@
         transition: width 400ms ease;
     }
 
-    /* --- Responsive Adjustments --- */
     @media (max-width: 576px) {
       body { padding: 0; }
       .container {
@@ -202,13 +230,17 @@
     <p class="footnote">Verification data is sourced directly from our secure registry.</p>
   </main>
 
-  <!-- Loading Overlay -->
   <div id="loadingOverlay">
     <div class="loading-card">
       <div id="animationContainer">
-        <svg class="grad-cap-anim" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M22 10v6M2 10l10-5 10 5-10 5-10-5z" stroke="#0d6efd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M6 12v5c0 1.66 4.48 3 10 3s6-1.34 6-3v-5" stroke="#0d6efd" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        <svg id="scannerAnim" class="scanner-anim" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path class="shield-bg" d="M12 2L2 7v6c0 5 8 9 10 9s10-4 10-9V7L12 2z"/>
+            <line class="scanner-line" x1="6" y1="12" x2="18" y2="12" stroke-width="1.5" stroke-linecap="round"/>
+            <path class="success-checkmark" d="M9 12l2 2 4-4" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <g class="fail-cross">
+                <line x1="10" y1="10" x2="14" y2="14" stroke-width="2" stroke-linecap="round"/>
+                <line x1="14" y1="10" x2="10" y2="14" stroke-width="2" stroke-linecap="round"/>
+            </g>
         </svg>
       </div>
       <h2 id="loadingHeadline" class="headline" style="font-size: 1.5rem;">Verifying Certificate</h2>
@@ -232,6 +264,7 @@
     const loadingStatus = document.getElementById('loadingStatus');
     const progressBarInner = document.getElementById('progressBarInner');
     const loadingHeadline = document.getElementById('loadingHeadline');
+    const scannerAnim = document.getElementById('scannerAnim');
 
     function updateProgress(percent, message) {
         progressBarInner.style.width = `${percent}%`;
@@ -277,15 +310,18 @@
 
     async function verify(id) {
       if (!id) {
-        showNotFound("INVALID LINK", "The verification link is missing a certificate ID.");
-        hideLoadingAndShowResults();
         loadingHeadline.textContent = "Error";
+        updateProgress(100, "Invalid Link");
+        scannerAnim.dataset.status = 'fail';
+        setTimeout(() => {
+          hideLoadingAndShowResults();
+          showNotFound("INVALID LINK", "The verification link is missing a certificate ID.");
+        }, 1200);
         return;
       }
 
       id = id.trim();
 
-      // Simulate progress stages for better UX
       setTimeout(() => updateProgress(25, 'Connecting to Secure Server...'), 200);
       setTimeout(() => updateProgress(50, 'Querying Official Registry...'), 700);
 
@@ -300,6 +336,12 @@
 
         setTimeout(() => {
           updateProgress(100, 'Done!');
+          if (json && json.status === 'verified' && json.data) {
+            scannerAnim.dataset.status = 'success';
+          } else {
+            scannerAnim.dataset.status = 'fail';
+          }
+
           setTimeout(() => {
             hideLoadingAndShowResults();
             if (json && json.status === 'verified' && json.data) {
@@ -307,16 +349,17 @@
             } else {
               showNotFound("NOT FOUND", "No valid record was found for this ID.");
             }
-          }, 400);
+          }, 600); // Wait for checkmark/cross animation
         }, 800);
 
       } catch (error) {
         console.error("Verification failed:", error);
         updateProgress(100, 'Error!');
+        scannerAnim.dataset.status = 'fail';
         setTimeout(() => {
             hideLoadingAndShowResults();
             showNotFound("REQUEST FAILED", "Could not connect to the verification service.");
-        }, 500);
+        }, 1200);
       }
     }
 
