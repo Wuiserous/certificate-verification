@@ -132,6 +132,15 @@ a {
   font-weight: 800;
 }
 
+.section-kicker {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
 .section-copy {
   margin: 0;
   color: var(--muted);
@@ -192,6 +201,42 @@ a {
   margin-top: 22px;
 }
 
+.certificate-stage {
+  padding: 24px;
+}
+
+.preview-shell {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(241, 246, 242, 0.92));
+  min-height: 860px;
+}
+
+.certificate-frame {
+  display: block;
+  width: 100%;
+  height: 860px;
+  border: 0;
+  background: white;
+}
+
+.preview-empty {
+  display: grid;
+  place-items: center;
+  min-height: 860px;
+  padding: 28px;
+  text-align: center;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.8;
+}
+
+.verify-layout {
+  align-items: start;
+}
+
 .cta {
   display: inline-flex;
   align-items: center;
@@ -246,5 +291,12 @@ a {
 @media (max-width: 900px) {
   .two-col {
     grid-template-columns: 1fr;
+  }
+
+  .preview-shell,
+  .preview-empty,
+  .certificate-frame {
+    min-height: 520px;
+    height: 520px;
   }
 }

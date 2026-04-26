@@ -1,4 +1,4 @@
-import { normalizeVerificationInput } from "@/lib/verification";
+import { buildVerificationQuery, normalizeVerificationInput } from "@/lib/verification";
 
 const brandName = process.env.NEXT_PUBLIC_BRAND_NAME || "Persevex CertiCheck";
 const issuerName = process.env.NEXT_PUBLIC_ISSUER_NAME || "Persevex";
@@ -15,6 +15,8 @@ export async function generateMetadata({ searchParams }) {
 export default async function VerifyPage({ searchParams }) {
   const resolvedSearchParams = await searchParams;
   const verification = normalizeVerificationInput(resolvedSearchParams);
+  const directDownloadPath = verification.isValid ? `/api/download?${buildVerificationQuery(verification)}` : "";
+  const inlinePreviewUrl = verification.downloadUrl;
 
   return (
     <main className="page-shell">
@@ -36,15 +38,34 @@ export default async function VerifyPage({ searchParams }) {
           </div>
         </section>
 
-        <section className="two-col">
+        <section className="panel-card certificate-stage">
+          <div className="section-kicker">Certificate Preview</div>
+          <div className="preview-shell">
+            {verification.isValid && inlinePreviewUrl ? (
+              <iframe
+                title="Certificate preview"
+                src={inlinePreviewUrl}
+                className="certificate-frame"
+              />
+            ) : (
+              <div className="preview-empty">
+                {verification.isValid
+                  ? "Set NEXT_PUBLIC_R2_PUBLIC_BASE_URL in Vercel to preview the uploaded PDF here."
+                  : "This verification link is incomplete, so the certificate preview cannot be shown yet."}
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className="two-col verify-layout">
           <article className="status-card">
             <div className={`status-badge ${verification.isValid ? "valid" : "invalid"}`}>
-              {verification.isValid ? "Verification Link Accepted" : "Verification Link Incomplete"}
+              {verification.isValid ? "Certificate Located" : "Verification Link Incomplete"}
             </div>
-            <h2 className="section-title">{verification.isValid ? "Certificate link parsed successfully" : "Missing required verification fields"}</h2>
+            <h2 className="section-title">{verification.isValid ? "Certificate details" : "Missing required verification fields"}</h2>
             <p className="section-copy">
               {verification.isValid
-                ? "The QR payload includes the certificate UUID, batch, and file. Once your cloud URL is configured, recipients can download the exact PDF from here."
+                ? "This certificate link includes the core lookup fields required to resolve the cloud-stored PDF."
                 : `This link is missing: ${verification.missing.join(", ")}.`}
             </p>
 
@@ -71,19 +92,23 @@ export default async function VerifyPage({ searchParams }) {
           <aside className="meta-card">
             <h2 className="section-title">Recipient actions</h2>
             <p className="section-copy">
-              The download button becomes live as soon as you configure a public base URL for your R2 bucket or custom
-              domain in Vercel.
+              Use the download button to save the exact PDF locally. The preview above is for viewing only.
             </p>
 
             <div className="download-stack">
               {verification.isValid && verification.downloadUrl ? (
-                <a className="cta" href={verification.downloadUrl} target="_blank" rel="noreferrer">
-                  Download Certificate PDF
-                </a>
+                <>
+                  <a className="cta" href={directDownloadPath}>
+                    Download Certificate
+                  </a>
+                  <a className="cta secondary" href={verification.downloadUrl} target="_blank" rel="noreferrer">
+                    Open Original PDF
+                  </a>
+                </>
               ) : (
                 <div className="notice">
                   {verification.isValid
-                    ? "Set NEXT_PUBLIC_R2_PUBLIC_BASE_URL in Vercel to enable direct certificate downloads from this page."
+                    ? "Set NEXT_PUBLIC_R2_PUBLIC_BASE_URL in Vercel to enable the preview and download actions."
                     : "Fix the QR query parameters first. The page needs certificate, batch, and file to resolve the PDF."}
                 </div>
               )}
