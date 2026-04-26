@@ -3,16 +3,18 @@ import { normalizeVerificationInput } from "@/lib/verification";
 const brandName = process.env.NEXT_PUBLIC_BRAND_NAME || "Persevex CertiCheck";
 const issuerName = process.env.NEXT_PUBLIC_ISSUER_NAME || "Persevex";
 
-export function generateMetadata({ searchParams }) {
-  const data = normalizeVerificationInput(searchParams);
+export async function generateMetadata({ searchParams }) {
+  const resolvedSearchParams = await searchParams;
+  const data = normalizeVerificationInput(resolvedSearchParams);
   return {
     title: data.isValid ? `Verified Certificate | ${brandName}` : `Invalid Verification Link | ${brandName}`,
     description: "Certificate verification and direct download."
   };
 }
 
-export default function VerifyPage({ searchParams }) {
-  const verification = normalizeVerificationInput(searchParams);
+export default async function VerifyPage({ searchParams }) {
+  const resolvedSearchParams = await searchParams;
+  const verification = normalizeVerificationInput(resolvedSearchParams);
 
   return (
     <main className="page-shell">
